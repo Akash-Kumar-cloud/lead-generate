@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 import { trackLead, trackInitiateForm, trackPhoneClick } from '@/components/MetaPixel';
@@ -178,8 +178,8 @@ function FAQItem({ q, a }) {
   );
 }
 
-// ===== MAIN PAGE =====
-export default function AroundTaxPage() {
+// ===== INNER WRAPPER TO CONSUME SEARCHPARAMS =====
+function TaxPageContent() {
   const searchParams = useSearchParams();
   const [scrolled, setScrolled] = useState(false);
 
@@ -380,7 +380,7 @@ export default function AroundTaxPage() {
             {testimonials.map((t, i) => (
               <div key={i} className="tax-testimonial-card">
                 <div className="tax-testimonial-stars">★★★★★</div>
-                <div className="tax-testimonial-text">&ldquo;{t.text}&rdquo;</div>
+                <div className="tax-testimonial-text">“{t.text}”</div>
                 <div className="tax-testimonial-author">
                   <div className="tax-testimonial-avatar">{t.initials}</div>
                   <div>
@@ -414,8 +414,8 @@ export default function AroundTaxPage() {
         <div className="tax-section-inner">
           <h2 className="tax-final-title">Need Help With <span>Tax or Compliance</span>?</h2>
           <p className="tax-final-desc">
-            Get a FREE consultation with our expert. Whether it&apos;s GST, income tax, company registration,
-            or any business compliance — we&apos;re here to help.
+            Get a FREE consultation with our expert. Whether it's GST, income tax, company registration,
+            or any business compliance — we're here to help.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={scrollToForm} className="tax-btn-gold" style={{ fontSize: 16, padding: '14px 36px' }}>
@@ -434,7 +434,7 @@ export default function AroundTaxPage() {
       <footer className="tax-footer">
         <div className="tax-footer-address">
           📍 {CONFIG.address}<br />
-          📞 {CONFIG.phone} &nbsp;|&nbsp;
+          📞 {CONFIG.phone}  |
           <a href={CONFIG.mapLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--tax-gold-light)' }}>
             View on Google Maps →
           </a>
@@ -464,5 +464,14 @@ export default function AroundTaxPage() {
         <button onClick={scrollToForm} className="tax-sticky-btn">Get Free Callback →</button>
       </div>
     </div>
+  );
+}
+
+// ===== MAIN PAGE WITH SUSPENSE BOUNDARY =====
+export default function AroundTaxPage() {
+  return (
+    <Suspense fallback={<div className="tax-page-loading">Loading tax portal...</div>}>
+      <TaxPageContent />
+    </Suspense>
   );
 }
