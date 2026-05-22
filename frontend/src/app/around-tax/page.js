@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-
 import { useSearchParams } from 'next/navigation';
+
+// Safely imported helper wrappers to prevent pre-render crashes
 import { trackLead, trackInitiateForm, trackPhoneClick } from '@/components/MetaPixel';
 import { trackGAEvent } from '@/components/GoogleAnalytics';
 
@@ -28,8 +29,11 @@ function LeadForm({ utm }) {
   const update = (f) => (e) => {
     if (!focused) {
       setFocused(true);
-      trackInitiateForm();
-      trackGAEvent('form_start', 'lead_form', 'around_tax');
+      // Ensure window analytics exist before firing
+      if (typeof window !== 'undefined') {
+        try { trackInitiateForm(); } catch (e) { }
+        try { trackGAEvent('form_start', 'lead_form', 'around_tax'); } catch (e) { }
+      }
     }
     setForm(prev => ({ ...prev, [f]: e.target.value }));
   };
@@ -59,8 +63,10 @@ function LeadForm({ utm }) {
         });
       }
 
-      trackLead({ content_name: form.service, content_category: 'accounting' });
-      trackGAEvent('generate_lead', 'lead_form', form.service);
+      if (typeof window !== 'undefined') {
+        try { trackLead({ content_name: form.service, content_category: 'accounting' }); } catch (e) { }
+        try { trackGAEvent('generate_lead', 'lead_form', form.service); } catch (e) { }
+      }
       setSuccess(true);
     } catch (err) {
       setError('Something went wrong. Please call us directly.');
@@ -116,7 +122,7 @@ function LeadForm({ utm }) {
 
         <div className="tax-form-group">
           <label className="tax-form-label">Service Needed *</label>
-          <select className="tax-form-select" value={form.service} onChange={update('service')} required id="tax-service">
+          <select className="tax-select-input" value={form.service} onChange={update('service')} required id="tax-service" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
             <option value="">Select Service</option>
             <optgroup label="Tax & Filing">
               <option value="GST Registration & Filing">GST Registration & Filing</option>
@@ -169,7 +175,7 @@ function FAQItem({ q, a }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="tax-faq-item">
-      <button className="tax-faq-q" onClick={() => setOpen(!open)}>
+      <button className="tax-faq-q" type="button" onClick={() => setOpen(!open)}>
         {q}
         <span className={`tax-faq-toggle ${open ? 'open' : ''}`}>+</span>
       </button>
@@ -178,15 +184,15 @@ function FAQItem({ q, a }) {
   );
 }
 
-// ===== INNER WRAPPER TO CONSUME SEARCHPARAMS =====
+// ===== MAIN PAGE INNER CONTENT =====
 function TaxPageContent() {
   const searchParams = useSearchParams();
   const [scrolled, setScrolled] = useState(false);
 
   const utm = {
-    source: searchParams.get('utm_source') || '',
-    medium: searchParams.get('utm_medium') || '',
-    campaign: searchParams.get('utm_campaign') || '',
+    source: searchParams ? searchParams.get('utm_source') || '' : '',
+    medium: searchParams ? searchParams.get('utm_medium') || '' : '',
+    campaign: searchParams ? searchParams.get('utm_campaign') || '' : '',
   };
 
   useEffect(() => {
@@ -200,8 +206,10 @@ function TaxPageContent() {
   };
 
   const handlePhoneClick = () => {
-    trackPhoneClick();
-    trackGAEvent('phone_click', 'contact', CONFIG.phone);
+    if (typeof window !== 'undefined') {
+      try { trackPhoneClick(); } catch (e) { }
+      try { trackGAEvent('phone_click', 'contact', CONFIG.phone); } catch (e) { }
+    }
   };
 
   const services = [
@@ -259,7 +267,7 @@ function TaxPageContent() {
             <a href={`tel:${CONFIG.phone}`} className="tax-nav-phone" onClick={handlePhoneClick}>
               📞 {CONFIG.phone}
             </a>
-            <button onClick={scrollToForm} className="tax-nav-cta">Free Consultation →</button>
+            <button type="button" onClick={scrollToForm} className="tax-nav-cta">Free Consultation →</button>
           </div>
         </div>
       </nav>
@@ -297,7 +305,7 @@ function TaxPageContent() {
               </div>
             </div>
             <div className="tax-hero-btns">
-              <button onClick={scrollToForm} className="tax-btn-gold">
+              <button type="button" onClick={scrollToForm} className="tax-btn-gold">
                 📋 Get Free Consultation
               </button>
               <a href={`tel:${CONFIG.phone}`} className="tax-btn-outline" onClick={handlePhoneClick}>
@@ -418,7 +426,7 @@ function TaxPageContent() {
             or any business compliance — we're here to help.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={scrollToForm} className="tax-btn-gold" style={{ fontSize: 16, padding: '14px 36px' }}>
+            <button type="button" onClick={scrollToForm} className="tax-btn-gold" style={{ fontSize: 16, padding: '14px 36px' }}>
               📋 Get Free Consultation →
             </button>
             <a href={`https://wa.me/${CONFIG.whatsapp}?text=Hi Around Tax, I need help with accounting/tax services.`}
@@ -451,8 +459,10 @@ function TaxPageContent() {
         rel="noopener noreferrer"
         className="tax-wa-float"
         onClick={() => {
-          trackPhoneClick();
-          trackGAEvent('whatsapp_click', 'contact', 'floating');
+          if (typeof window !== 'undefined') {
+            try { trackPhoneClick(); } catch (e) { }
+            try { trackGAEvent('whatsapp_click', 'contact', 'floating'); } catch (e) { }
+          }
         }}
       >
         💬
@@ -461,16 +471,16 @@ function TaxPageContent() {
       {/* Sticky CTA */}
       <div className="tax-sticky-cta">
         <span className="tax-sticky-text">🎉 <span>FREE GST Consultancy</span> — Limited Time!</span>
-        <button onClick={scrollToForm} className="tax-sticky-btn">Get Free Callback →</button>
+        <button type="button" onClick={scrollToForm} className="tax-sticky-btn">Get Free Callback →</button>
       </div>
     </div>
   );
 }
 
-// ===== MAIN PAGE WITH SUSPENSE BOUNDARY =====
+// ===== MAIN PAGE EXPORT WITH BOUNDARY =====
 export default function AroundTaxPage() {
   return (
-    <Suspense fallback={<div className="tax-page-loading">Loading tax portal...</div>}>
+    <Suspense fallback={<div className="tax-page-loading" style={{ padding: '50px', textAlign: 'center' }}>Loading tax portal...</div>}>
       <TaxPageContent />
     </Suspense>
   );
