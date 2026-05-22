@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { trackLead, trackInitiateForm } from '@/components/MetaPixel';
 import { trackGAEvent } from '@/components/GoogleAnalytics';
@@ -12,7 +12,7 @@ const CONFIG = {
   whatsapp: '919852560793',
 };
 
-export default function LeadFormPage() {
+function LeadFormContent() {
   const searchParams = useSearchParams();
   const [form, setForm] = useState({ name: '', phone: '', service: '' });
   const [loading, setLoading] = useState(false);
@@ -21,16 +21,18 @@ export default function LeadFormPage() {
   const [touched, setTouched] = useState(false);
 
   const utm = {
-    source: searchParams.get('utm_source') || 'direct',
-    medium: searchParams.get('utm_medium') || '',
-    campaign: searchParams.get('utm_campaign') || '',
+    source: searchParams ? searchParams.get('utm_source') || 'direct' : 'direct',
+    medium: searchParams ? searchParams.get('utm_medium') || '' : '',
+    campaign: searchParams ? searchParams.get('utm_campaign') || '' : '',
   };
 
   const update = (field) => (e) => {
     if (!touched) {
       setTouched(true);
-      trackInitiateForm();
-      trackGAEvent('form_start', 'lead_form', 'meta_ads');
+      if (typeof window !== 'undefined') {
+        try { trackInitiateForm(); } catch (_) {}
+        try { trackGAEvent('form_start', 'lead_form', 'meta_ads'); } catch (_) {}
+      }
     }
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
@@ -61,8 +63,10 @@ export default function LeadFormPage() {
         });
       }
 
-      trackLead({ content_name: form.service, content_category: 'accounting' });
-      trackGAEvent('generate_lead', 'lead_form', form.service);
+      if (typeof window !== 'undefined') {
+        try { trackLead({ content_name: form.service, content_category: 'accounting' }); } catch (_) {}
+        try { trackGAEvent('generate_lead', 'lead_form', form.service); } catch (_) {}
+      }
       setSuccess(true);
     } catch {
       setError('Something went wrong. Please call us directly.');
@@ -171,5 +175,13 @@ export default function LeadFormPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LeadFormPage() {
+  return (
+    <Suspense fallback={<div className="page-wrapper" style={{ textAlign: 'center', paddingTop: '40vh' }}>Loading...</div>}>
+      <LeadFormContent />
+    </Suspense>
   );
 }
