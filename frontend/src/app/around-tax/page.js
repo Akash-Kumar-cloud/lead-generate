@@ -12,8 +12,8 @@ const CONFIG = {
   webhookUrl: process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || '',
   name: 'Around Tax',
   tagline: 'Grow Your Business',
-  phone: '+91 9852560793',
-  whatsapp: '919852560793',
+  phone: '+91 9430102050',
+  whatsapp: '919430102050',
   address: 'Shop no. 4/2, 2nd floor, Kauleshwari Tower, Kutchery Chowk, above Rajasthan Kalewalaya, Deputy Para, Road, Ranchi, Jharkhand 834001',
   mapLink: 'https://maps.google.com/?q=Kauleshwari+Tower+Kutchery+Chowk+Ranchi',
 };
@@ -105,6 +105,7 @@ function LeadForm({ utm }) {
         <h3>📋 Get FREE Consultation</h3>
         <p>Talk to our tax expert — No charges</p>
         <div className="tax-form-free-badge">✅ FREE GST Consultancy — Limited Time</div>
+        <div className="tax-highlight-badge">📋 For Income Tax Filing</div>
       </div>
 
       {error && <div className="tax-form-error">{error}</div>}
@@ -282,6 +283,7 @@ function TaxPageContent() {
               <span className="tax-hero-offer-dot" />
               <span className="tax-hero-offer-text">🎉 Free GST Consultancy</span>
             </div>
+            <div className="tax-highlight-badge" style={{ marginBottom: 12 }}>📋 For Income Tax Filing</div>
             <h1 className="tax-hero-title">
               Complete Accounting &<br />
               <span className="tax-hero-title-gold">Tax Services</span>
